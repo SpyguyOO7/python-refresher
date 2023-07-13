@@ -4,7 +4,7 @@ class Account:
         self.balance = balance
         self.name = name
         self.number = number
-
+        #self.e = 9
     def withdraw(self, amount):
         """Subtracts amount specifed from balance"""
         if amount < 0 or self.balance - amount < 0: #raise an error and stop the function if something is wrong
