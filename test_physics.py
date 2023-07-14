@@ -19,8 +19,8 @@ class TestPhysics(unittest.TestCase):
             physics.will_it_float(1,-1)
 
     def test_calculate_pressure(self):
-        self.assertEqual(physics.calculate_pressure(20), 1000*9.81*20)
-        self.assertEqual(physics.calculate_pressure(10), 1000*9.81*10)
+        self.assertEqual(physics.calculate_pressure(20), 1000*9.81*20+101325)
+        self.assertEqual(physics.calculate_pressure(10), 1000*9.81*10+101325)
         with self.assertRaises(ValueError):
             physics.calculate_pressure(-1)
 
