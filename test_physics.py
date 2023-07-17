@@ -1,6 +1,7 @@
 import unittest
 import physics
 import numpy as np
+import math
 
 
 class TestPhysics(unittest.TestCase):
@@ -44,24 +45,49 @@ class TestPhysics(unittest.TestCase):
 
     def test_calculate_auv_acceleration(self):
         result = physics.calculate_auv_acceleration(6, 0.1, 2)
-        self.assertEqual(result[0], 3)
-        self.assertEqual(result[1], 3)
+        self.assertEqual(result[0], 2.9850124958340776)
+        self.assertEqual(result[1], 0.29950024994048446)
 
     def test_calculate_auv_angular_acceleration(self):
-        self.assertEqual(physics.calculate_auv_angular_acceleration(6, 0.1, 2, 2), 6)
+        with self.assertRaises(ValueError):
+            physics.calculate_auv_angular_acceleration(6, math.pi, 2, 2)
+        with self.assertRaises(ValueError):
+            physics.calculate_auv_angular_acceleration(1000, 0.1, 2, 2)
+        self.assertEqual(
+            physics.calculate_auv_angular_acceleration(6, 0.1, 2, 2),
+            0.010471970195389852,
+        )
         self.assertNotEqual(physics.calculate_auv_angular_acceleration(6, 0.1, 2, 2), 0)
 
     def test_calculate_auv2_acceleration(self):
+        with self.assertRaises(ValueError):
+            physics.calculate_auv_angular_acceleration(6, math.pi, 2, 2)
+        with self.assertRaises(ValueError):
+            physics.calculate_auv_angular_acceleration(1000, 0.1, 2, 2)
         testArray = np.array([1, 3, 1, 2])
         result = physics.calculate_auv2_acceleration(testArray, 0.5, 0.3)
         self.assertEqual(result[0], 0.009800665778412416)
         self.assertEqual(result[1], -0.001986693307950612)
+        result = physics.calculate_auv2_acceleration(
+            np.array([2, 4, 8, 6]),
+            math.pi / 4,
+            math.pi / 6,
+            1,
+        )
+        self.assertEqual(round(result[0], 5), round(math.sqrt(2) - 2 * math.sqrt(6), 5))
+        self.assertEqual(
+            round(result[1], 5), round(-2 * math.sqrt(2) - math.sqrt(6), 5)
+        )
 
     def test_calculate_auv2_angular_acceleration(self):
         testArray = np.array([1, 3, 1, 2])
         result = physics.calculate_auv2_angular_acceleration(testArray, 0.5, 1.5, 1.8)
-        print(result)
+        # print(result)
         self.assertEqual(result, -0.06896360757926927)
+        result2 = physics.calculate_auv2_angular_acceleration(
+            np.array([40, 20, 30, 10]), np.pi / 2, 10, 5
+        )
+        self.assertEqual(result2, 4.0)
 
 
 if __name__ == "__main__":

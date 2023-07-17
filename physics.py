@@ -31,46 +31,58 @@ def calculate_pressure(depth: int or float):
 
 
 def calculate_acceleration(force, mass):
-    if mass < 0:
+    """calculates the acceleration of an object given the force applied to it and its mass"""
+    if mass <= 0:
         raise ValueError("mass cannot be less than 0")
     return force / mass
 
 
 def calculate_angular_acceleration(tau, I):
-    if I < 0:
+    """calculates the angular acceleration of an object given the torque applied to it and its moment of inertia"""
+    if I <= 0:
         raise ValueError("I cannot be less than 0")
     return tau / I
 
 
 def calculate_torque(F_magnitude, F_direction, r):
+    """calculates the torque applied to an object given the force applied to it and the distance from the axis of rotation to the point where the force is applied
+    Takes in Degrees
+    """
     if r < 0:
         raise ValueError("r cannot be less than 0")
     return r * F_magnitude * np.sin(np.radians(F_direction))
 
 
 def calculate_moment_of_inertia(m, r):
-    if r < 0:
+    """calculates the moment of inertia of an object given its mass and the distance from the axis of rotation to the center of mass of the object"""
+    if r <= 0:
         raise ValueError("r cannot be less than 0")
-    return m * r * r
+    return m * np.power(r, 2)
 
 
 def calculate_auv_acceleration(
     F_magnitude, F_angle, mass=100, volume=0.1, thruster_distance=0.5
 ):
-    if mass < 0:
+    """calculates the acceleration of the AUV in the 2D plane. Takes in radians"""
+    if mass <= 0:
         raise ValueError("mass cannot be less than 0")
-    if F_magnitude > 100:
+    if abs(F_magnitude) > 100:
         raise ValueError("Thruster force cannot exceed 100N")
     if abs(F_angle) > np.radians(30):
         raise ValueError("Thruster angle cannot exceed 30 degreees")
-    xAccel = calculate_acceleration(F_magnitude * np.cos(F_angle), mass)
-    yAccel = calculate_acceleration(F_magnitude * np.sin(F_angle), mass)
-    return np.array([xAccel, yAccel])
+    ForceMatrix = np.array(
+        [
+            F_magnitude * np.cos(F_angle),
+            F_magnitude * np.sin(F_angle),
+        ]
+    )
+    return calculate_acceleration(ForceMatrix, mass)
 
 
 def calculate_auv_angular_acceleration(
     F_magnitude, F_angle, inertia=1, thruster_distance=0.5
 ):
+    """calculates the angular acceleration of the AUV."""
     if abs(F_angle) > np.radians(30):
         raise ValueError("Thruster angle cannot exceed 30 degreees")
     if F_magnitude >= 100:
@@ -82,11 +94,18 @@ def calculate_auv_angular_acceleration(
 
 
 def calculate_auv2_acceleration(T, alpha, theta, mass=100):
+    # print(type(T))
+    # print(np.shape(T))
+    if type(T) != np.ndarray:
+        raise TypeError("first param must be np.array")
+
+    if np.shape(T) != (4, 1) and np.shape(T) != (4,):
+        raise ValueError("first param must be array of dimensions (4,)")
     # Force = np.array(shape=(2, 1))
     cosAngle = np.cos(alpha)
     sinAngle = np.sin(alpha)
     # ThrusterDirections = np.empty([2, 2], dtype=float)
-    ThrusterDirections = np.array(
+    ProjectionMatrix = np.array(
         [
             cosAngle,
             cosAngle,
@@ -111,20 +130,24 @@ def calculate_auv2_acceleration(T, alpha, theta, mass=100):
     # ThrusterDirections = np.reshape
     # print(ThrusterDirections)
     # print(T)
-    LocalForce = np.dot(ThrusterDirections, T)
+    LocalForce = np.dot(ProjectionMatrix, T)
 
     RobotForce = np.dot(RotationMatrix, LocalForce)
     Acceleration = np.divide(RobotForce, mass)
-    # print(Force)
-    # print(Acceleraton)
+    # print(ProjectionMatrix)
+    # print(T)
+    # print(RobotForce)
+    # print(f"Acceleraton:")
+    # print(RotationMatrix)
     return Acceleration
 
 
-test = np.array([2, 2, 1, 1]).reshape(4, 1)
-print(calculate_auv2_acceleration(test, 45, 45))
-
-
 def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia=100):
+    if type(T) != np.ndarray:
+        raise TypeError("first param must be np.array")
+
+    if np.shape(T) != (4, 1) and np.shape(T) != (4,):
+        raise ValueError("first param must be array of dimensions (4,)")
     r = np.sqrt(np.power(L, 2) + np.power(l, 2))
     TotalTorque = 0
     counter = 0
@@ -139,7 +162,11 @@ def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia=100):
     return calculate_angular_acceleration(TotalTorque, inertia)
 
 
-test = np.array([1, 3, 1, 2])
-print(calculate_auv2_angular_acceleration(test, 0.5, 1.5, 1.8))
-print(calculate_auv2_acceleration(test, 0.5, 0.3))
-print(calculate_auv_acceleration(30, math.pi / 2, 0.3))
+if __name__ == "__main__":
+    test = np.array([2, 2, 1, 1]).reshape(4, 1)
+    print(np.array([2, 2, 1, 1]).reshape(4, 1))
+    print(calculate_auv2_acceleration(test, 45, 45))
+    test = np.array([[1], [3], [1], [2]])
+    print(calculate_auv2_angular_acceleration(test, 0.5, 1.5, 1.8))
+    print(calculate_auv2_acceleration(test, 0.5, 0.3))
+    # print(calculate_auv_acceleration(30, math.pi / 2, 0.3))
