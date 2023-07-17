@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 Atmospheric_Pressure = 101325
 density_water = 1000
@@ -30,30 +31,50 @@ def calculate_pressure(depth: int or float):
 
 
 def calculate_acceleration(force, mass):
+    if mass < 0:
+        raise ValueError("mass cannot be less than 0")
     return force / mass
 
 
 def calculate_angular_acceleration(tau, I):
+    if I < 0:
+        raise ValueError("I cannot be less than 0")
     return tau / I
 
 
 def calculate_torque(F_magnitude, F_direction, r):
+    if r < 0:
+        raise ValueError("r cannot be less than 0")
     return r * F_magnitude * np.sin(np.radians(F_direction))
 
 
 def calculate_moment_of_inertia(m, r):
+    if r < 0:
+        raise ValueError("r cannot be less than 0")
     return m * r * r
 
 
 def calculate_auv_acceleration(
     F_magnitude, F_angle, mass=100, volume=0.1, thruster_distance=0.5
 ):
-    return calculate_acceleration(F_magnitude, mass)
+    if mass < 0:
+        raise ValueError("mass cannot be less than 0")
+    if F_magnitude > 100:
+        raise ValueError("Thruster force cannot exceed 100N")
+    if abs(F_angle) > np.radians(30):
+        raise ValueError("Thruster angle cannot exceed 30 degreees")
+    xAccel = calculate_acceleration(F_magnitude * np.cos(F_angle), mass)
+    yAccel = calculate_acceleration(F_magnitude * np.sin(F_angle), mass)
+    return np.array([xAccel, yAccel])
 
 
 def calculate_auv_angular_acceleration(
     F_magnitude, F_angle, inertia=1, thruster_distance=0.5
 ):
+    if abs(F_angle) > np.radians(30):
+        raise ValueError("Thruster angle cannot exceed 30 degreees")
+    if F_magnitude >= 100:
+        raise ValueError("Thruster force cannot exceed 100N")
     torque = calculate_torque(F_magnitude, F_angle, thruster_distance)
     # return inertia
     # moment_of_inertia = calculate_moment_of_inertia(mass, thruster_distance)
@@ -121,3 +142,4 @@ def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia=100):
 test = np.array([1, 3, 1, 2])
 print(calculate_auv2_angular_acceleration(test, 0.5, 1.5, 1.8))
 print(calculate_auv2_acceleration(test, 0.5, 0.3))
+print(calculate_auv_acceleration(30, math.pi / 2, 0.3))
