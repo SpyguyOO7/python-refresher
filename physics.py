@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import math
 
 Atmospheric_Pressure = 101325
@@ -117,8 +118,11 @@ def calculate_auv2_acceleration(T, alpha, theta, mass=100):
             sinAngle,
         ]
     ).reshape(2, 4)
+    # print(theta)
     RobotCos = np.cos(theta)
+    # print(RobotCos)
     RobotSin = np.sin(theta)
+    # print("I am working!")
     RotationMatrix = np.array(
         [
             RobotCos,
@@ -127,6 +131,7 @@ def calculate_auv2_acceleration(T, alpha, theta, mass=100):
             RobotCos,
         ]
     ).reshape(2, 2)
+    # print(RotationMatrix)
     # ThrusterDirections = np.reshape
     # print(ThrusterDirections)
     # print(T)
@@ -162,11 +167,59 @@ def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia=100):
     return calculate_angular_acceleration(TotalTorque, inertia)
 
 
+def simulate_auv2_motion(
+    T,
+    angleThruster,
+    L,
+    l,
+    mass=100,
+    inertia=100,
+    dt=0.1,
+    t_final=10,
+    x0=0,
+    y0=0,
+    theta0=0,
+):
+    time = np.arange(0, t_final, dt)
+    num_rows = time.shape[0]
+
+    position = np.zeros((num_rows, 2))
+    velocity = np.zeros((num_rows, 2))
+    acceleration = np.zeros((num_rows, 2))
+    print(acceleration)
+    AUV_Angle = np.zeros((num_rows, 1))
+    AUV_Angle[0] = theta0
+    angular_velocity = np.zeros((num_rows, 1))
+    angular_acceleration = np.zeros((num_rows, 1))
+    # print("aa SHAPE")
+    # print(acceleration.shape)
+    for i in range(1, len(time)):
+        angular_acceleration[i] = calculate_auv2_angular_acceleration(
+            T, angleThruster, L, l, inertia
+        ).ravel()
+        acceleration[i] = calculate_auv2_acceleration(
+            T, angleThruster, AUV_Angle[i - 1], mass
+        ).ravel()
+
+        velocity[i] = acceleration[i] * dt + velocity[i - 1]
+        angular_velocity[i] = angular_acceleration[i] * dt + angular_velocity[i - 1]
+
+        position[i] = velocity[i] * dt + position[i - 1]
+        AUV_Angle[i] = angular_velocity[i] * dt + AUV_Angle[i - 1]
+        # print(calculate_auv2_acceleration(T, angleThruster, AUV_Angle[i], mass)[0])
+        # print(position[i])
+        # print(AUV_Angle[i])
+        # print("thing")
+        plt.plot(time, position, label="Position")
+    return position, AUV_Angle, velocity, angular_velocity, acceleration
+
+
 if __name__ == "__main__":
-    test = np.array([2, 2, 1, 1]).reshape(4, 1)
-    print(np.array([2, 2, 1, 1]).reshape(4, 1))
-    print(calculate_auv2_acceleration(test, 45, 45))
-    test = np.array([[1], [3], [1], [2]])
-    print(calculate_auv2_angular_acceleration(test, 0.5, 1.5, 1.8))
-    print(calculate_auv2_acceleration(test, 0.5, 0.3))
+    test = np.array([10, 2, 1, 1]).reshape((4, 1))
+    simulate_auv2_motion(test, 0.2, 3, 1)
+    # print(np.array([2, 2, 1, 1]).reshape(4, 1))
+    # print(calculate_auv2_acceleration(test, 45, 45))
+    # test = np.array([[1], [3], [1], [2]])
+    # print(calculate_auv2_angular_acceleration(test, 0.5, 1.5, 1.8))
+    # print(calculate_auv2_acceleration(test, 0.5, 0.3))
     # print(calculate_auv_acceleration(30, math.pi / 2, 0.3))
