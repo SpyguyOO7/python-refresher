@@ -89,6 +89,22 @@ class TestPhysics(unittest.TestCase):
         )
         self.assertEqual(result2, 4.0)
 
+    def test_simulate_auv2_motion(self):
+        test = np.array([100, 0, -100, 100]).reshape((4, 1))
+        (
+            time,
+            positionx,
+            positiony,
+            AUV_Angle,
+            velocity,
+            angular_velocity,
+            acceleration,
+        ) = physics.simulate_auv2_motion(test, math.pi / 2, 1, 1, 100, 100, 0.5, 0.1)
+        self.assertEqual(round(positionx[0], 10), 0)
+        self.assertEqual(positiony[0], 0.75)
+        self.assertEqual(AUV_Angle[0], -0.25)
+        # print(f"time:{time[0]}")
+
 
 if __name__ == "__main__":
     unittest.main()

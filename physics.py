@@ -193,6 +193,17 @@ def simulate_auv2_motion(
     angular_acceleration = np.zeros((num_rows, 1))
     # print("aa SHAPE")
     # print(acceleration.shape)
+    angular_acceleration[0] = calculate_auv2_angular_acceleration(
+        T, angleThruster, L, l, inertia
+    ).ravel()
+    acceleration[0] = calculate_auv2_acceleration(
+        T, angleThruster, AUV_Angle[0], mass
+    ).ravel()
+    velocity[0] = acceleration[0] * dt
+    angular_velocity[0] = angular_acceleration[0] * dt
+
+    position[0] = velocity[0] * dt
+    AUV_Angle[0] = angular_velocity[0] * dt
     for i in range(1, len(time)):
         angular_acceleration[i] = calculate_auv2_angular_acceleration(
             T, angleThruster, L, l, inertia
@@ -210,8 +221,16 @@ def simulate_auv2_motion(
         # print(position[i])
         # print(AUV_Angle[i])
         # print("thing")
-        plt.plot(time, position, label="Position")
-    return position, AUV_Angle, velocity, angular_velocity, acceleration
+
+    return (
+        time,
+        position[:, 0],
+        position[:, 1],
+        AUV_Angle,
+        velocity,
+        angular_velocity,
+        acceleration,
+    )
 
 
 if __name__ == "__main__":
